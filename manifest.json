@@ -1,6 +1,6 @@
 {
-  "name": "School Safety Inspector - Aplikasi Rekam Tiap Informasi Keselamatan Untuk Lingkungan Aman Siswa Indonesia (ARTIKULASI)",
-  "short_name": "Safety Inspector",
+  "name": "ARTIKULASI - Aplikasi Rekam Tiap Informasi Keselamatan Untuk Lingkungan Aman Siswa Indonesia",
+  "short_name": "ARTIKULASI",
   "description": "Aplikasi pelaporan infrastruktur berbahaya di sekolah dengan fitur foto dan analisis risiko",
   "start_url": "/index.html",
   "scope": "/",
