@@ -1392,47 +1392,43 @@
     }
 
     function submitReport(e) {
-      e.preventDefault();
+  e.preventDefault();
 
-      const nama = document.getElementById('f-nama').value.trim();
-      const lokasi = document.getElementById('f-lokasi').value;
-      const risiko = document.querySelector('input[name="risiko"]:checked').value;
-      const desc = document.getElementById('f-deskripsi').value.trim();
-      const rec = document.getElementById('f-rekomendasi').value.trim();
-      const reporter = document.getElementById('f-pelapor').value.trim();
+  const nama = document.getElementById('f-nama').value.trim();
+  const lokasi = document.getElementById('f-lokasi').value;
+  const risiko = document.querySelector('input[name="risiko"]:checked').value;
+  const desc = document.getElementById('f-deskripsi').value.trim();
+  const rec = document.getElementById('f-rekomendasi').value.trim();
+  const reporter = document.getElementById('f-pelapor').value.trim();
 
-      if (!nama || !lokasi || !risiko || !desc || uploadedFiles.length === 0) {
-        showToast('Harap lengkapi semua field dan tambahkan minimal 1 foto!', false);
-        return;
-      }
+  const reportData = {
+    nama: nama,
+    lokasi: lokasi,
+    risiko: risiko,
+    desc: desc,
+    rec: rec,
+    reporter: reporter || 'Anonim'
+  };
 
-      const report = {
-        id: Date.now(),
-        tanggal: new Date().toLocaleDateString('id-ID'),
-        nama: nama,
-        lokasi: lokasi,
-        risiko: risiko,
-        desc: desc,
-        rec: rec,
-        reporter: reporter || 'Anonim',
-        status: 'Menunggu',
-        foto: uploadedFiles
-      };
+  // GANTI DENGAN URL GOOGLE APPS SCRIPT ANDA
+  const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbywkE-iWeKYpba7tberMrV0ScwNVxioAX1ihaYThuN8v4UOJW1im8WtPoRIL27TRiAgbA/exec"; 
 
-      reports.unshift(report);
-      saveReports();
-      updateStats();
-      renderReports();
-      renderZones();
-
-      // Reset form
-      document.querySelector('#panel-tambah form').reset();
-      uploadedFiles = [];
-      document.getElementById('photoPreview').innerHTML = '';
-
-      showToast('✅ Laporan berhasil dikirim!', true);
-    }
-
+  fetch(URL_APPS_SCRIPT, {
+    method: 'POST',
+    body: JSON.stringify(reportData)
+  })
+  .then(res => res.json())
+  .then(response => {
+     if(response.status === 'success') {
+       showToast('✅ Laporan berhasil dikirim ke Google Sheets!', true);
+       document.querySelector('#panel-tambah form').reset();
+     }
+  })
+  .catch(error => {
+     showToast('❌ Gagal mengirim laporan', false);
+     console.error(error);
+  });
+}
     // ==========================================
     // DATA MANAGEMENT
     // ==========================================
