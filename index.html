@@ -1467,16 +1467,32 @@
     }
 
     function updateStats() {
-      const total = reports.length;
-      const tinggi = reports.filter(r => r.risiko === 'tinggi').length;
-      const sedang = reports.filter(r => r.risiko === 'sedang').length;
-      const selesai = reports.filter(r => r.status === 'Selesai').length;
+  const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbywkE-iWeKYpba7tberMrV0ScwNVxioAX1ihaYThuN8v4UOJW1im8WtPoRIL27TRiAgbA/exec";
 
-      document.getElementById('statTotal').textContent = total;
-      document.getElementById('statTinggi').textContent = tinggi;
-      document.getElementById('statSedang').textContent = sedang;
-      document.getElementById('statSelesai').textContent = selesai;
-    }
+  // Lakukan request GET ke Google Apps Script untuk mengambil ringkasan data terbaru
+  fetch(URL_APPS_SCRIPT)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        // Update elemen DOM sesuai dengan ID kotak yang ada di HTML Anda
+        // Catatan: Pastikan ID elemen berikut cocok dengan tag HTML kotak statistik Anda
+        const totalEl = document.getElementById('stat-total') || document.querySelector('.card-total .stat-number');
+        const tinggiEl = document.getElementById('stat-tinggi') || document.querySelector('.card-tinggi .stat-number');
+        const sedangEl = document.getElementById('stat-sedang') || document.querySelector('.card-sedang .stat-number');
+        
+        if (totalEl) totalEl.textContent = data.totalLaporan;
+        if (tinggiEl) tinggiEl.textContent = data.risikoTinggi;
+        if (sedangEl) sedangEl.textContent = data.risikoSedang;
+      }
+    })
+    .catch(error => {
+      console.error("Gagal mengambil statistik dari Google Sheets:", error);
+      // Jika gagal terkoneksi/offline, gunakan fallback nilai 0 atau data lokal
+      if(typeof reports !== 'undefined') {
+         // Kode fallback bawaan Anda sebelumnya jika diperlukan
+      }
+    });
+}
 
     function renderReports() {
       const list = document.getElementById('reportList');
