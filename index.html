@@ -1425,29 +1425,87 @@
       }
     }
 
-    function updateStats() {
-      // Ambil ringkasan data dari Google Apps Script (GET)
-      fetch(URL_APPS_SCRIPT)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "success") {
-            // Update nilai angka di elemen statistik dashboard
-            const totalEl = document.getElementById('statTotal');
-            const tinggiEl = document.getElementById('statTinggi');
-            const sedangEl = document.getElementById('statSedang');
-            const selesaiEl = document.getElementById('statSelesai');
+   function updateStats() {
+  const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbywkE-iWeKYpba7tberMrV0ScwNVxioAX1ihaYThuN8v4UOJW1im8WtPoRIL27TRiAgbA/exec";
 
-            if (totalEl) totalEl.textContent = data.totalLaporan;
-            if (tinggiEl) tinggiEl.textContent = data.risikoTinggi;
-            if (sedangEl) sedangEl.textContent = data.risikoSedang;
-            if (selesaiEl) selesaiEl.textContent = data.selesai || 0; // Menyesuaikan jika ada parameter selesai
+  fetch(URL_APPS_SCRIPT)
+    .then(res => res.json())
+    .then(response => {
+      if (response.status === "success") {
+        // 1. Simpan data dari spreadsheet ke variabel global aplikasi
+        reports = response.data; 
+
+        // 2. Inisialisasi hitungan awal
+        let totalLaporan = reports.length;
+        let risikoTinggi = 0;
+        let risikoSedang = 0;
+        let selesai = 0;
+
+        // 3. Lakukan perhitungan berdasarkan data riil dari spreadsheet
+        reports.forEach(rep => {
+          const risikoText = String(rep.risiko).toLowerCase();
+          const descText = String(rep.deskripsi).toLowerCase();
+          const namaText = String(rep.nama).toLowerCase();
+
+          if (risikoText.includes("tinggi")) {
+            risikoTinggi++;
+          } else if (risikoText.includes("sedang")) {
+            risikoSedang++;
           }
-        })
-        .catch(error => {
-          console.error("Gagal sinkronisasi statistik dengan Google Sheets:", error);
-        });
-    }
 
+          // Hitung jika ada kata kunci "selesai" di dalam data
+          if (descText.includes("selesai") || namaText.includes("selesai")) {
+            selesai++;
+          }
+        });
+
+        // 4. Tampilkan angka ke kotak dashboard HTML
+        document.getElementById('statTotal').textContent = totalLaporan;
+        document.getElementById('statTinggi').textContent = risikoTinggi;
+        document.getElementById('statSedang').textContent = risikoSedang;
+        document.getElementById('statSelesai').textContent = selesai;
+
+        // 5. Perbarui tampilan daftar laporan di tab Admin secara otomatis
+        renderReportsRealTime();
+      }
+    })
+    .catch(error => {
+      console.error("Gagal memuat data dari Spreadsheet:", error);
+    });
+}
+
+// Fungsi tambahan untuk menampilkan daftar laporan di tab Admin
+function renderReportsRealTime() {
+  const list = document.getElementById('reportList');
+  if (!list) return;
+
+  if (reports.length === 0) {
+    list.innerHTML = '<p style="color: var(--color-text-secondary); text-align: center; padding: 20px;">Belum ada laporan di spreadsheet.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  reports.forEach((rep, index) => {
+    const card = document.createElement('div');
+    card.className = 'report-card';
+    card.innerHTML = `
+      <div class="report-card-header">
+        <div>
+          <div class="report-title">${rep.nama}</div>
+          <div class="report-location"><i class="fas fa-map-marker-alt"></i> ${rep.lokasi}</div>
+        </div>
+        <span class="report-risk ${rep.risiko}">${rep.risiko}</span>
+      </div>
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">${rep.deskripsi}</p>
+      ${rep.rekomendasi ? `<p style="font-size: 12px; color: var(--color-success);">💡 Rekomendasi: ${rep.rekomendasi}</p>` : ''}
+      <div class="report-meta">
+        <span><i class="fas fa-user"></i> ${rep.pelapor}</span>
+        <span>${rep.timestamp ? new Date(rep.timestamp).toLocaleDateString('id-ID') : ''}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
